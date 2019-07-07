@@ -7,10 +7,12 @@
     - http://lspiroengine.com/?p=378
 
 ## Low hanging fruit
+- update readme with dependencies (zig 0.4.0+ [or use build-cc-*], raylib)
+- how to run (make run)
 
 ## Medium priority
 - more planets
-- asteroids?
+- asteroids? generate randomly and distribute in a ring (use total mass of asteroid belt; ~3.0e+21)
 - zoom in / out
 - time speed up / slown
 - use physac? https://github.com/victorfisac/Physac
