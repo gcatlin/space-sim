@@ -1,11 +1,7 @@
-.PHONY = build clean list-deps run FORCE
+.PHONY = build clean list-deps run zig-build zig-list-deps zig-run FORCE
 
-build: FORCE
-	@zig build
-
-# build-dynamic:
-# 	@mkdir build
-# 	cc main.c `pkg-config --libs --cflags raylib` -o space-sim
+build: bin Makefile main.c
+	cc main.c `pkg-config --libs --cflags raylib` -o bin/space-sim
 
 # build-static:
 # 	cc libraylib-2.5.0.a main.c \
@@ -14,14 +10,26 @@ build: FORCE
 # 	    -framework GLUT-framework IOKit -framework OpenGL \
 # 	    -Xlinker -w
 
+bin:
+	@mkdir bin
+
 clean:
-	rm -rf zig-cache
+	@rm -rf bin zig-cache
 
-list-deps:
-	@zig build install
-	@otool -L zig-cache/bin/space-sim
+list-deps: build
+	@otool -L bin/space-sim
 
-run: FORCE
+run: build
+	@./bin/space-sim
+
+zig-build: FORCE
+	@zig build
+
+zig-list-deps:
+	@zig build install --prefix .
+	@otool -L bin/space-sim
+
+zig-run: FORCE
 	@zig build run
 
 FORCE:
