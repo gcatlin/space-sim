@@ -60,8 +60,8 @@ static inline float v2_magnitude(v2 v) { return sqrtf(v.x*v.x + v.y*v.y); }
 static void init_bodies(void)
 {
     for (int i = 0; i < 8; i++) {
-	planets[i].position.y = 0;
-	planets[i].velocity.x = 0;
+        planets[i].position.y = 0;
+        planets[i].velocity.x = 0;
     }
     planets[0].position.x = 5.7909175e+10; planets[0].velocity.y = -4.7870e+4;
     planets[1].position.x = 1.0820893e+11; planets[1].velocity.y = -3.5020e+4;
@@ -95,7 +95,7 @@ static void simulate_planet(body_t *planet, float dt)
 static void simulate(float dt)
 {
     for (int i = 0; i < 8; i++) {
-	simulate_planet(&planets[i], dt);
+        simulate_planet(&planets[i], dt);
     }
 }
 
@@ -163,52 +163,52 @@ int main(void)
     float zoom = 1.5e-10;
 
     while (!WindowShouldClose()) {
-	// Handle input
-	if (IsKeyPressed(KEY_SPACE)) { paused = !paused; }
-	if (IsKeyPressed(KEY_R)) { init_bodies(); }
+        // Handle input
+        if (IsKeyPressed(KEY_SPACE)) { paused = !paused; }
+        if (IsKeyPressed(KEY_R)) { init_bodies(); }
 
-	// Update
-	if (!paused) {
-	    simulate(simulation_time_step * time_multiplier);
-	    simulate(simulation_time_step * time_multiplier);
-	    simulate(simulation_time_step * time_multiplier);
-	    simulate(simulation_time_step * time_multiplier);
-	}
+        // Update
+        if (!paused) {
+            simulate(simulation_time_step * time_multiplier);
+            simulate(simulation_time_step * time_multiplier);
+            simulate(simulation_time_step * time_multiplier);
+            simulate(simulation_time_step * time_multiplier);
+        }
 
-	// Render
-	BeginDrawing();
-	{
+        // Render
+        BeginDrawing();
+        {
             screenWidth = GetScreenWidth();
             screenHeight = GetScreenHeight();
 
-	    ClearBackground(BACKGROUND);
-	    DrawFPS(10, 10);
+            ClearBackground(BACKGROUND);
+            DrawFPS(10, 10);
 
-	    // Scale and Translate
-	    v2 center = { screenWidth/2, screenHeight/2 };
-	    v2 sun_pos = v2_add(center, v2_scale(sun.position, zoom));
-	    v2 planet_pos[8];
-	    for (int i = 0; i < 8; i++) {
-		planet_pos[i] = v2_add(center, v2_scale(planets[i].position, zoom));
-	    }
+            // Scale and Translate
+            v2 center = { screenWidth/2, screenHeight/2 };
+            v2 sun_pos = v2_add(center, v2_scale(sun.position, zoom));
+            v2 planet_pos[8];
+            for (int i = 0; i < 8; i++) {
+                planet_pos[i] = v2_add(center, v2_scale(planets[i].position, zoom));
+            }
 
-	    // Draw bodies
-	    DrawCircleV(sun_pos, sun.radius * zoom, sun.color);
-	    for (int i = 0; i < 8; i++) {
-		DrawCircleV(planet_pos[i], planets[i].radius * zoom, planets[i].color);
-	    }
+            // Draw bodies
+            DrawCircleV(sun_pos, sun.radius * zoom, sun.color);
+            for (int i = 0; i < 8; i++) {
+                DrawCircleV(planet_pos[i], planets[i].radius * zoom, planets[i].color);
+            }
 
-	    // Draw extra stuff
-	    DrawBodyLabel(&sun, sun_pos, 60.0f, DARKGREEN);
-	    for (int i = 0; i < 8; i++) {
-		DrawBodyLabel(&planets[i], planet_pos[i], 15.0f, DARKGREEN);
-		DrawBodyOrbit(sun_pos, planet_pos[i], planets[i].color);
-	    }
+            // Draw extra stuff
+            DrawBodyLabel(&sun, sun_pos, 60.0f, DARKGREEN);
+            for (int i = 0; i < 8; i++) {
+                DrawBodyLabel(&planets[i], planet_pos[i], 15.0f, DARKGREEN);
+                DrawBodyOrbit(sun_pos, planet_pos[i], planets[i].color);
+            }
 
-	    // DrawBodyLabelText(earth, "Earth", (v2){20, screenHeight-80});
-	    // draw velocity vector(s)?
-	}
-	EndDrawing();
+            // DrawBodyLabelText(earth, "Earth", (v2){20, screenHeight-80});
+            // draw velocity vector(s)?
+        }
+        EndDrawing();
     }
 
     CloseWindow();
