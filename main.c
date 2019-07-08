@@ -29,7 +29,6 @@ static const float GMsun = 1.3271244e+20; // standard gravitational parameter (m
 static const int   label_font_size     = 10;
 static const Color label_font_color    = WHITE;
 static const Color label_shadow_color  = BLACK;
-static const int   label_shadow_offset = 1;
 
 // https://en.wikipedia.org/wiki/List_of_gravitationally_rounded_objects_of_the_Solar_System
 static body_t sun = { {0}, {0}, 1.98550e+30, 5.03651473e-31, 6.95700e+08, "Sun", YELLOW };
@@ -107,6 +106,12 @@ static void DrawCross(v2 center, float radius, Color color)
     DrawLine(c.x,     c.y - r, c.x,     c.y + r, color);
 }
 
+static void DrawTextWithShadow(const char *text, int posX, int posY, int font_size, Color fg, Color bg)
+{
+    DrawText(text, posX + 1, posY + 1, font_size, bg);
+    DrawText(text, posX, posY, font_size, fg);
+}
+
 static void DrawBodyLabelText(body_t *body, char *name, v2 pos)
 {
     const float dist = v2_distance(sun.position, body->position) / 1000;
@@ -115,10 +120,9 @@ static void DrawBodyLabelText(body_t *body, char *name, v2 pos)
 
     const float x_offset = 0.0f;
     const float y_offset = 20.0f;
-    const int lfs = label_font_size; const int lso = label_shadow_offset;
-    const Color lfc = label_font_color; const Color lsc = label_shadow_color;
-    DrawText(tmpstr, pos.x + x_offset + lso, pos.y + y_offset + lso, lfs, lsc);
-    DrawText(tmpstr, pos.x + x_offset,       pos.y + y_offset,       lfs, lfc);
+    DrawTextWithShadow(
+            tmpstr, pos.x + x_offset, pos.y + y_offset,
+            label_font_size, label_font_color, label_shadow_color);
 }
 
 static void DrawBodyLabel(body_t *body, v2 pos, float box_size, Color box_color)
