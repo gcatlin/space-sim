@@ -11,7 +11,7 @@ build: bin Makefile main.c
 # 	    -Xlinker -w
 
 bin:
-	@mkdir bin
+	@mkdir -p bin
 
 clean:
 	@rm -rf bin zig-cache
