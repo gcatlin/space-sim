@@ -15,44 +15,40 @@ typedef struct {
     float mass;
     float _mass; // inverse mass
     float radius;
+    char name[8];
+    Color color;
 } body_t;
 
 static char tmpstr[1024];
 
 // https://en.wikipedia.org/wiki/Astronomical_system_of_units
 // https://en.wikipedia.org/wiki/Standard_gravitational_parameter
-// https://arxiv.org/pdf/1510.07674.pdf
-static const float G      = 6.67408e-11; // Gravitational constant (m³ kg⁻¹ s⁻²)
-static const float GMsun  = 1.3271244e+20; // standard gravitational parameter (m³ s⁻²)
-static const float Msun   = 1.98550e+30; // mass (kg)
-static const float Mearth = 5.97200e+24; // mass (kg)
-static const float Rsun   = 6.95700e+08; // radius (m)
-static const float Rearth = 6.37810e+06; // radius (m)
-static const float Searth = 2.97860e+04; // orbital speed (m s⁻¹)
-static const float Dearth = 1.49600e+11; // distance to sun (m)
+static const float G     = 6.67408e-11;   // Gravitational constant (m³ kg⁻¹ s⁻²)
+static const float GMsun = 1.3271244e+20; // standard gravitational parameter (m³ s⁻²)
 
 static const float simulation_time_step = 1.0f/240.0f; // 4.16 ms
 static const float time_multiplier = 2e6;
-static const float zoom = 2.5e-9;
+static const float zoom = 1.5e-10;
 
-static const int label_font_size = 10;
-static const Color label_font_color = WHITE;
-static const Color label_shadow_color = BLACK;
-static const int label_shadow_offset = 1;
+static const int   label_font_size     = 10;
+static const Color label_font_color    = WHITE;
+static const Color label_shadow_color  = BLACK;
+static const int   label_shadow_offset = 1;
 
-static body_t sun;
-static body_t mercury;
-static body_t venus;
-static body_t earth;
-static body_t mars;
-static body_t jupiter;
-static body_t saturn;
-static body_t uranus;
-static body_t neptune;
-static body_t *planets[8] = {
-    &mercury, &venus, &earth, &mars,
-    &jupiter, &saturn, &uranus, &neptune
+// https://en.wikipedia.org/wiki/List_of_gravitationally_rounded_objects_of_the_Solar_System
+static body_t sun = { {0}, {0}, 1.98550e+30, 5.03651473e-31, 6.95700e+08, "Sun", YELLOW };
+static body_t planets[8] = {
+    //pos  vel  mass (kg)   1/mass (kg⁻¹)   radius (m)   name       color
+    { {0}, {0}, 3.3020e+23, 3.02846760e-24, 2.439640e+6, "Mercury", GRAY     },
+    { {0}, {0}, 4.8690e+24, 2.05380982e-25, 6.051590e+6, "Venus",   GREEN    },
+    { {0}, {0}, 5.9720e+24, 1.67448091e-25, 6.378100e+6, "Earth",   BLUE     },
+    { {0}, {0}, 6.4191e+23, 1.55785079e-24, 3.397000e+6, "Mars",    RED      },
+    { {0}, {0}, 1.8987e+27, 5.26676147e-28, 7.149268e+7, "Jupiter", ORANGE   },
+    { {0}, {0}, 5.6851e+26, 1.75898401e-27, 6.026714e+7, "Saturn",  BEIGE    },
+    { {0}, {0}, 8.6849e+25, 1.15142374e-26, 2.555725e+7, "Uranus",  SKYBLUE  },
+    { {0}, {0}, 1.0244e+26, 9.76181179e-27, 2.476636e+7, "Neptune", DARKBLUE },
 };
+
 
 static inline v2 v2_add(v2 v, v2 u) { return (v2){ v.x + u.x, v.y + u.y }; }
 static inline v2 v2_div(v2 v, v2 u) { return (v2){ v.x / u.x, v.y / u.y }; }
@@ -61,6 +57,22 @@ static inline v2 v2_sub(v2 v, v2 u) { return (v2){ v.x - u.x, v.y - u.y }; }
 static inline v2 v2_scale(v2 v, float s) { return (v2){ v.x * s, v.y * s }; }
 static inline float v2_distance(v2 v, v2 u) { return sqrtf((v.x-u.x)*(v.x-u.x) + (v.y-u.y)*(v.y-u.y)); }
 static inline float v2_magnitude(v2 v) { return sqrtf(v.x*v.x + v.y*v.y); }
+
+static void init_bodies(void)
+{
+    for (int i = 0; i < 8; i++) {
+	planets[i].position.y = 0;
+	planets[i].velocity.x = 0;
+    }
+    planets[0].position.x = 5.7909175e+10; planets[0].velocity.y = -4.7870e+4;
+    planets[1].position.x = 1.0820893e+11; planets[1].velocity.y = -3.5020e+4;
+    planets[2].position.x = 1.4959789e+11; planets[2].velocity.y = -2.9786e+4;
+    planets[3].position.x = 2.2793664e+11; planets[3].velocity.y = -2.4077e+4;
+    planets[4].position.x = 7.7841201e+11; planets[4].velocity.y = -1.3070e+4;
+    planets[5].position.x = 1.4267254e+12; planets[5].velocity.y = -9.6900e+3;
+    planets[6].position.x = 2.8709722e+12; planets[6].velocity.y = -6.8100e+3;
+    planets[7].position.x = 4.4982529e+12; planets[7].velocity.y = -5.4300e+3;
+}
 
 static void simulate_planet(body_t *planet, float dt)
 {
@@ -83,8 +95,8 @@ static void simulate_planet(body_t *planet, float dt)
 
 static void simulate(float dt)
 {
-    for (int i = 0; i < 4; i++) {
-	simulate_planet(planets[i], dt);
+    for (int i = 0; i < 8; i++) {
+	simulate_planet(&planets[i], dt);
     }
 }
 
@@ -109,7 +121,7 @@ static void DrawBodyLabelText(body_t *body, char *name, v2 pos)
     DrawText(tmpstr, pos.x + x_offset,       pos.y + y_offset,       lfs, lfc);
 }
 
-static void DrawBodyLabel(body_t *body, char *name, v2 pos, float box_size, Color box_color)
+static void DrawBodyLabel(body_t *body, v2 pos, float box_size, Color box_color)
 {
     // Box and cross shapes
     float half = box_size/2.0f;
@@ -117,22 +129,13 @@ static void DrawBodyLabel(body_t *body, char *name, v2 pos, float box_size, Colo
     DrawCross(pos, box_size / 8.0f, box_color);
 
     // Text
-    DrawBodyLabelText(body, name, pos);
+    DrawBodyLabelText(body, body->name, pos);
 }
 
 static void DrawBodyOrbit(v2 parent_pos, v2 child_pos, Color color)
 {
     const float distance = v2_distance(parent_pos, child_pos);
     DrawCircleLines(parent_pos.x, parent_pos.y, distance, color);
-}
-
-static void init_bodies(void)
-{
-    sun     = (body_t){{0, 0},      {0, 0},       Msun,   1.0f/Msun,   Rsun};
-    mercury = (body_t){{0, Dearth/3}, {Searth, 0}, Mearth, 1.0f/Mearth, Rearth};
-    venus   = (body_t){{Dearth/2, 0}, {0, -Searth}, Mearth, 1.0f/Mearth, Rearth};
-    earth   = (body_t){{-Dearth, 0}, {0, -Searth}, Mearth, 1.0f/Mearth, Rearth};
-    mars    = (body_t){{0, -Dearth*1.2}, {Searth, 0}, Mearth, 1.0f/Mearth, Rearth};
 }
 
 int main(void)
@@ -152,53 +155,51 @@ int main(void)
     // Main game loop
     bool paused = false;
     while (!WindowShouldClose()) {
-        // Handle input
-        if (IsKeyPressed(KEY_SPACE)) { paused = !paused; }
-        if (IsKeyPressed(KEY_R)) { init_bodies(); }
+	// Handle input
+	if (IsKeyPressed(KEY_SPACE)) { paused = !paused; }
+	if (IsKeyPressed(KEY_R)) { init_bodies(); }
 
-        // Update
-        if (!paused) {
-            simulate(simulation_time_step * time_multiplier);
-            simulate(simulation_time_step * time_multiplier);
-            simulate(simulation_time_step * time_multiplier);
-            simulate(simulation_time_step * time_multiplier);
-        }
+	// Update
+	if (!paused) {
+	    simulate(simulation_time_step * time_multiplier);
+	    simulate(simulation_time_step * time_multiplier);
+	    simulate(simulation_time_step * time_multiplier);
+	    simulate(simulation_time_step * time_multiplier);
+	}
 
-        // Render
-        BeginDrawing();
-        {
-            ClearBackground(BACKGROUND);
-            DrawFPS(10, 10);
+	// Render
+	BeginDrawing();
+	{
+	    ClearBackground(BACKGROUND);
+	    DrawFPS(10, 10);
 
-            // Scale and Translate
-            screenWidth = GetScreenWidth();
-            screenHeight = GetScreenHeight();
-            v2 center = { screenWidth/2, screenHeight/2 };
-            v2 sun_pos = v2_add(center, v2_scale(sun.position, zoom));
+	    // Scale and Translate
+	    screenWidth = GetScreenWidth();
+	    screenHeight = GetScreenHeight();
+	    v2 center = { screenWidth/2, screenHeight/2 };
+	    v2 sun_pos = v2_add(center, v2_scale(sun.position, zoom));
 	    v2 planet_pos[8];
-	    for (int i = 0; i < 4; i++) {
-		planet_pos[i] = v2_add(center, v2_scale(planets[i]->position, zoom));
+	    for (int i = 0; i < 8; i++) {
+		planet_pos[i] = v2_add(center, v2_scale(planets[i].position, zoom));
 	    }
 
-            // Draw bodies
-            DrawCircleV(sun_pos,   sun.radius   * zoom, YELLOW);
-	    for (int i = 0; i < 4; i++) {
-		DrawCircleV(planet_pos[i], planets[i]->radius * zoom, BLUE);
+	    // Draw bodies
+	    DrawCircleV(sun_pos, sun.radius * zoom, sun.color);
+	    for (int i = 0; i < 8; i++) {
+		DrawCircleV(planet_pos[i], planets[i].radius * zoom, planets[i].color);
 	    }
 
-            // Draw extra stuff
-            DrawBodyLabel(&sun, "Sun", sun_pos, 60.0f, DARKGREEN);
-	    for (int i = 0; i < 4; i++) {
-		char name[1024];
-		sprintf(name, "Planet %d", i);
-		DrawBodyLabel(planets[i], name, planet_pos[i], 15.0f, DARKGREEN);
-		// DrawBodyOrbit(sun_pos, planet_pos[i], DARKGREEN);
+	    // Draw extra stuff
+	    DrawBodyLabel(&sun, sun_pos, 60.0f, DARKGREEN);
+	    for (int i = 0; i < 8; i++) {
+		DrawBodyLabel(&planets[i], planet_pos[i], 15.0f, DARKGREEN);
+		DrawBodyOrbit(sun_pos, planet_pos[i], planets[i].color);
 	    }
 
-            // DrawBodyLabelText(earth, "Earth", (v2){20, screenHeight-80});
-            // draw velocity vector(s)?
-        }
-        EndDrawing();
+	    // DrawBodyLabelText(earth, "Earth", (v2){20, screenHeight-80});
+	    // draw velocity vector(s)?
+	}
+	EndDrawing();
     }
 
     CloseWindow();

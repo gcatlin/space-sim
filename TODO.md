@@ -1,15 +1,21 @@
 # TODO
 
 ## High priority
-- get inner planets working
+- support zoom in / out on sun using mouse wheel
 
 ## Low hanging fruit
 
 ## Medium priority
-- add remaining planets
-- add asteroids? generate randomly and distribute in a ring (use total mass of asteroid belt; ~3.0e+21)
-- support zoom in / out using mouse wheel
+- press key to select next/prev body
+    - show info for selected body
+    - body outline (square?, cirlce?) differs from selection indicator (corners of square? different color?)
+- click mouse to select body
+- zoom in/out on selected body
+- pan via keys
+- pan via mouse
 - support speeding up / slowing down time
+- read about the Orbit equation https://en.wikipedia.org/wiki/Orbit_equation
+- add asteroids? generate randomly and distribute in a ring (use total mass of asteroid belt; ~3.0e+21)
 - better game loop / fixed time step
     - https://gameprogrammingpatterns.com/game-loop.html
     - https://web.archive.org/web/20190506122532/http://gafferongames.com/post/fix_your_timestep/
