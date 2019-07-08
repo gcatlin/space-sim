@@ -178,12 +178,13 @@ int main(void)
 	// Render
 	BeginDrawing();
 	{
+            screenWidth = GetScreenWidth();
+            screenHeight = GetScreenHeight();
+
 	    ClearBackground(BACKGROUND);
 	    DrawFPS(10, 10);
 
 	    // Scale and Translate
-	    screenWidth = GetScreenWidth();
-	    screenHeight = GetScreenHeight();
 	    v2 center = { screenWidth/2, screenHeight/2 };
 	    v2 sun_pos = v2_add(center, v2_scale(sun.position, zoom));
 	    v2 planet_pos[8];
