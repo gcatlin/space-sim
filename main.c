@@ -26,10 +26,6 @@ static char tmpstr[1024];
 static const float G     = 6.67408e-11;   // Gravitational constant (m³ kg⁻¹ s⁻²)
 static const float GMsun = 1.3271244e+20; // standard gravitational parameter (m³ s⁻²)
 
-static const float simulation_time_step = 1.0f/240.0f; // 4.16 ms
-static const float time_multiplier = 2e6;
-static const float zoom = 1.5e-10;
-
 static const int   label_font_size     = 10;
 static const Color label_font_color    = WHITE;
 static const Color label_shadow_color  = BLACK;
@@ -158,6 +154,10 @@ int main(void)
 
     // Main game loop
     bool paused = false;
+    const float simulation_time_step = 1.0f/240.0f; // 4.16 ms
+    const float time_multiplier = 2e6;
+    float zoom = 1.5e-10;
+
     while (!WindowShouldClose()) {
 	// Handle input
 	if (IsKeyPressed(KEY_SPACE)) { paused = !paused; }
