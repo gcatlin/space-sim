@@ -15,6 +15,7 @@ typedef struct {
     float mass;
     float _mass; // inverse mass
     float radius;
+    float distance;
     char name[8];
     Color color;
 } body_t;
@@ -31,17 +32,17 @@ static const Color label_font_color    = WHITE;
 static const Color label_shadow_color  = BLACK;
 
 // https://en.wikipedia.org/wiki/List_of_gravitationally_rounded_objects_of_the_Solar_System
-static body_t sun = { {0}, {0}, 1.98550e+30, 5.03651473e-31, 6.95700e+08, "Sun", YELLOW };
+static body_t sun = { {0}, {0}, 1.98550e+30, 5.03651473e-31, 6.95700e+08, 0, "Sun", YELLOW };
 static body_t planets[8] = {
-    //pos  vel  mass (kg)   1/mass (kg⁻¹)   radius (m)   name       color
-    { {0}, {0}, 3.3020e+23, 3.02846760e-24, 2.439640e+6, "Mercury", GRAY     },
-    { {0}, {0}, 4.8690e+24, 2.05380982e-25, 6.051590e+6, "Venus",   GREEN    },
-    { {0}, {0}, 5.9720e+24, 1.67448091e-25, 6.378100e+6, "Earth",   BLUE     },
-    { {0}, {0}, 6.4191e+23, 1.55785079e-24, 3.397000e+6, "Mars",    RED      },
-    { {0}, {0}, 1.8987e+27, 5.26676147e-28, 7.149268e+7, "Jupiter", ORANGE   },
-    { {0}, {0}, 5.6851e+26, 1.75898401e-27, 6.026714e+7, "Saturn",  BEIGE    },
-    { {0}, {0}, 8.6849e+25, 1.15142374e-26, 2.555725e+7, "Uranus",  SKYBLUE  },
-    { {0}, {0}, 1.0244e+26, 9.76181179e-27, 2.476636e+7, "Neptune", DARKBLUE },
+    //pos  vel  mass (kg)   1/mass (kg⁻¹)   radius (m)   distance (m)   name       color
+    { {0}, {0}, 3.3020e+23, 3.02846760e-24, 2.439640e+6, 5.7909175e+10, "Mercury", GRAY     },
+    { {0}, {0}, 4.8690e+24, 2.05380982e-25, 6.051590e+6, 1.0820893e+11, "Venus",   GREEN    },
+    { {0}, {0}, 5.9720e+24, 1.67448091e-25, 6.378100e+6, 1.4959789e+11, "Earth",   BLUE     },
+    { {0}, {0}, 6.4191e+23, 1.55785079e-24, 3.397000e+6, 2.2793664e+11, "Mars",    RED      },
+    { {0}, {0}, 1.8987e+27, 5.26676147e-28, 7.149268e+7, 7.7841201e+11, "Jupiter", ORANGE   },
+    { {0}, {0}, 5.6851e+26, 1.75898401e-27, 6.026714e+7, 1.4267254e+12, "Saturn",  BEIGE    },
+    { {0}, {0}, 8.6849e+25, 1.15142374e-26, 2.555725e+7, 2.8709722e+12, "Uranus",  SKYBLUE  },
+    { {0}, {0}, 1.0244e+26, 9.76181179e-27, 2.476636e+7, 4.4982529e+12, "Neptune", DARKBLUE },
 };
 
 
@@ -60,17 +61,18 @@ static inline float v2_magnitude(v2 v) { return sqrtf(v.x*v.x + v.y*v.y); }
 static void init_bodies(void)
 {
     for (int i = 0; i < 8; i++) {
+        planets[i].position.x = planets[i].distance;
         planets[i].position.y = 0;
         planets[i].velocity.x = 0;
     }
-    planets[0].position.x = 5.7909175e+10; planets[0].velocity.y = -4.7870e+4;
-    planets[1].position.x = 1.0820893e+11; planets[1].velocity.y = -3.5020e+4;
-    planets[2].position.x = 1.4959789e+11; planets[2].velocity.y = -2.9786e+4;
-    planets[3].position.x = 2.2793664e+11; planets[3].velocity.y = -2.4077e+4;
-    planets[4].position.x = 7.7841201e+11; planets[4].velocity.y = -1.3070e+4;
-    planets[5].position.x = 1.4267254e+12; planets[5].velocity.y = -9.6900e+3;
-    planets[6].position.x = 2.8709722e+12; planets[6].velocity.y = -6.8100e+3;
-    planets[7].position.x = 4.4982529e+12; planets[7].velocity.y = -5.4300e+3;
+    planets[0].velocity.y = -4.7870e+4;
+    planets[1].velocity.y = -3.5020e+4;
+    planets[2].velocity.y = -2.9786e+4;
+    planets[3].velocity.y = -2.4077e+4;
+    planets[4].velocity.y = -1.3070e+4;
+    planets[5].velocity.y = -9.6900e+3;
+    planets[6].velocity.y = -6.8100e+3;
+    planets[7].velocity.y = -5.4300e+3;
 }
 
 static void simulate_planet(body_t *planet, float dt)
