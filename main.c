@@ -4,7 +4,6 @@
 
 #include <raylib.h>  // v2.5.0
 
-#define BACKGROUND (Color){ 5, 5, 5, 255 }
 #define SOFTENING 1e-9f
 
 typedef Vector2 v2;
@@ -27,6 +26,7 @@ static char tmpstr[1024];
 static const float G     = 6.67408e-11;   // Gravitational constant (m³ kg⁻¹ s⁻²)
 static const float GMsun = 1.3271244e+20; // standard gravitational parameter (m³ s⁻²)
 
+static const Color background = { 5, 5, 5, 255 };
 static const int   label_font_size     = 10;
 static const Color label_font_color    = WHITE;
 static const Color label_shadow_color  = BLACK;
@@ -182,7 +182,7 @@ int main(void)
             screenWidth = GetScreenWidth();
             screenHeight = GetScreenHeight();
 
-            ClearBackground(BACKGROUND);
+            ClearBackground(background);
             DrawFPS(10, 10);
 
             // Scale and Translate
