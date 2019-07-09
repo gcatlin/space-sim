@@ -2,15 +2,20 @@
 
 ## High priority
 - support zoom in / out on sun using mouse wheel
+    - stretchy-buffer-style ring buffer for samples
+    - fn for drawing an array of ints/floats as a chart
 
 ## Low hanging fruit
 
 ## Medium priority
+- moons!
 - press key to select next/prev body
     - show info for selected body
     - body outline (square?, cirlce?) differs from selection indicator (corners of square? different color?)
 - click mouse to select body
 - zoom in/out on selected body
+- solar system bar
+    - planets (and moons?) are selectable?
 - pan via keys
 - pan via mouse
 - support speeding up / slowing down time
