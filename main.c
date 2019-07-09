@@ -206,6 +206,22 @@ int main(void)
                 DrawBodyOrbit(sun_pos, planet_pos[i], planets[i].color);
             }
 
+            // Solar system bar
+            Color bar_color = { 10, 10, 10, 255 };
+            float bar_height = 40.0f;
+            DrawRectangle(0, screenHeight - bar_height, screenWidth, bar_height, bar_color);
+            body_t jupiter = planets[4];
+            body_t neptune = planets[7];
+            float width_scale = neptune.distance / screenWidth * 1.01f;
+            float height_scale = (jupiter.radius * 2.0f / bar_height) * 1.2f;
+            float posY = screenHeight - (bar_height / 2.0f);
+            DrawCircle(0, posY, max(sun.radius / height_scale, 10.0f), Fade(sun.color, 0.25f));
+            for (int i = 0; i < 8; i++) {
+                int posX = planets[i].distance / width_scale;
+                int radius = planets[i].radius / height_scale;
+                DrawCircle(posX, posY, max(radius, 2.0f), planets[i].color);
+            }
+
             // DrawBodyLabelText(earth, "Earth", (v2){20, screenHeight-80});
             // draw velocity vector(s)?
         }
