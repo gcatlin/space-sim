@@ -159,6 +159,11 @@ int main(void)
 
     // Main game loop
     bool paused = false;
+
+    bool draw_bar = false;
+    bool draw_labels = false;
+    bool draw_planets = false;
+
     const float simulation_time_step = 1.0f/240.0f; // 4.16 ms
     const float time_multiplier = 2e6;
     float zoom = 1.5e-10;
@@ -166,6 +171,9 @@ int main(void)
     while (!WindowShouldClose()) {
         // Handle input
         if (IsKeyPressed(KEY_SPACE)) { paused = !paused; }
+        if (IsKeyPressed(KEY_B)) { draw_bar = !draw_bar; }
+        if (IsKeyPressed(KEY_L)) { draw_labels = !draw_labels; }
+        if (IsKeyPressed(KEY_P)) { draw_planets = !draw_planets; }
         if (IsKeyPressed(KEY_R)) { init_bodies(); }
 
         int mouse_wheel_move = GetMouseWheelMove();
@@ -198,33 +206,41 @@ int main(void)
                 planet_pos[i] = v2_add(center, v2_scale(planets[i].position, zoom));
             }
 
-            // Draw bodies
+            // Sun
             DrawCircleV(sun_pos, sun.radius * zoom, sun.color);
-            for (int i = 0; i < 8; i++) {
-                DrawCircleV(planet_pos[i], planets[i].radius * zoom, planets[i].color);
+            if (draw_labels) {
+                DrawBodyLabel(&sun, sun_pos, 60.0f, DARKGREEN);
             }
 
-            // Draw extra stuff
-            DrawBodyLabel(&sun, sun_pos, 60.0f, DARKGREEN);
-            for (int i = 0; i < 8; i++) {
-                DrawBodyLabel(&planets[i], planet_pos[i], 15.0f, DARKGREEN);
-                DrawBodyOrbit(sun_pos, planet_pos[i], planets[i].color);
+            // Planets
+            if (draw_planets) {
+                for (int i = 0; i < 8; i++) {
+                    DrawCircleV(planet_pos[i], planets[i].radius * zoom, planets[i].color);
+                }
+                if (draw_labels) {
+                    for (int i = 0; i < 8; i++) {
+                        DrawBodyLabel(&planets[i], planet_pos[i], 15.0f, DARKGREEN);
+                        DrawBodyOrbit(sun_pos, planet_pos[i], planets[i].color);
+                    }
+                }
             }
 
             // Solar system bar
-            Color bar_color = { 10, 10, 10, 255 };
-            float bar_height = 40.0f;
-            DrawRectangle(0, screenHeight - bar_height, screenWidth, bar_height, bar_color);
-            body_t jupiter = planets[4];
-            body_t neptune = planets[7];
-            float width_scale = neptune.distance / screenWidth * 1.01f;
-            float height_scale = (jupiter.radius * 2.0f / bar_height) * 1.2f;
-            float posY = screenHeight - (bar_height / 2.0f);
-            DrawCircle(0, posY, max(sun.radius / height_scale, 10.0f), Fade(sun.color, 0.25f));
-            for (int i = 0; i < 8; i++) {
-                int posX = planets[i].distance / width_scale;
-                int radius = planets[i].radius / height_scale;
-                DrawCircle(posX, posY, max(radius, 2.0f), planets[i].color);
+            if (draw_bar) {
+                Color bar_color = { 10, 10, 10, 255 };
+                float bar_height = 40.0f;
+                DrawRectangle(0, screenHeight - bar_height, screenWidth, bar_height, bar_color);
+                body_t jupiter = planets[4];
+                body_t neptune = planets[7];
+                float width_scale = neptune.distance / screenWidth * 1.01f;
+                float height_scale = (jupiter.radius * 2.0f / bar_height) * 1.2f;
+                float posY = screenHeight - (bar_height / 2.0f);
+                DrawCircle(0, posY, max(sun.radius / height_scale, 10.0f), Fade(sun.color, 0.25f));
+                for (int i = 0; i < 8; i++) {
+                    int posX = planets[i].distance / width_scale;
+                    int radius = planets[i].radius / height_scale;
+                    DrawCircle(posX, posY, max(radius, 2.0f), planets[i].color);
+                }
             }
 
             sprintf(tmpstr, "Zoom: %.1e \n Mouse wheel: %d", zoom, mouse_wheel_move);
