@@ -168,6 +168,11 @@ int main(void)
         if (IsKeyPressed(KEY_SPACE)) { paused = !paused; }
         if (IsKeyPressed(KEY_R)) { init_bodies(); }
 
+        int mouse_wheel_move = GetMouseWheelMove();
+        if (mouse_wheel_move) {
+            // zoom = clamp(zoom + mouse_wheel_move, 1e-12, 1);
+        }
+
         // Update
         if (!paused) {
             simulate(simulation_time_step * time_multiplier);
@@ -221,6 +226,9 @@ int main(void)
                 int radius = planets[i].radius / height_scale;
                 DrawCircle(posX, posY, max(radius, 2.0f), planets[i].color);
             }
+
+            sprintf(tmpstr, "Zoom: %.1e \n Mouse wheel: %d", zoom, mouse_wheel_move);
+            DrawTextWithShadow(tmpstr, 10, screenHeight - 100, 10, WHITE, BLACK);
 
             // DrawBodyLabelText(earth, "Earth", (v2){20, screenHeight-80});
             // draw velocity vector(s)?
