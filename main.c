@@ -101,9 +101,8 @@ static void simulate(float dt)
 
 static void DrawCross(v2 center, float radius, Color color)
 {
-    v2 c = center; float r = radius;
-    DrawLine(c.x - r, c.y,     c.x + r, c.y,     color);
-    DrawLine(c.x,     c.y - r, c.x,     c.y + r, color);
+    DrawLine(center.x - radius, center.y, center.x + radius, center.y, color);
+    DrawLine(center.x, center.y - radius, center.x, center.y + radius, color);
 }
 
 static void DrawTextWithShadow(const char *text, int posX, int posY, int font_size, Color fg, Color bg)
