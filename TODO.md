@@ -2,7 +2,6 @@
 
 ## High priority
 - support zoom in / out on sun using mouse wheel
-    - stretchy-buffer-style ring buffer for samples
     - fn for drawing an array of ints/floats as a chart
 
 ## Low hanging fruit

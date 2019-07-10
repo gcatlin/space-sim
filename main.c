@@ -163,7 +163,7 @@ int main(void)
     init_bodies();
 
     bool paused = false;
-
+    bool draw_fps = true;
     bool draw_bar = false;
     bool draw_labels = false;
     bool draw_planets = false;
@@ -172,11 +172,14 @@ int main(void)
     const float time_multiplier = 2e6;
     float zoom = 1.5e-10;
 
+    float *frame_times; rbuf_init(frame_times, 256);
+
     // Main game loop
     while (!WindowShouldClose()) {
         // Handle input
         if (IsKeyPressed(KEY_SPACE)) { paused = !paused; }
         if (IsKeyPressed(KEY_B)) { draw_bar = !draw_bar; }
+        if (IsKeyPressed(KEY_F)) { draw_fps = !draw_fps; }
         if (IsKeyPressed(KEY_L)) { draw_labels = !draw_labels; }
         if (IsKeyPressed(KEY_P)) { draw_planets = !draw_planets; }
         if (IsKeyPressed(KEY_R)) { init_bodies(); }
@@ -204,7 +207,6 @@ int main(void)
             screenHeight = GetScreenHeight();
 
             ClearBackground(background);
-            DrawFPS(10, 10);
 
             // Scale and Translate
             const v2 center = { screenWidth/2, screenHeight/2 };
@@ -253,6 +255,46 @@ int main(void)
 
             sprintf(tmpstr, "Zoom: %.1e \n Mouse wheel: %d", zoom, mouse_wheel_move);
             DrawTextWithShadow(tmpstr, 10, screenHeight - 100, 10, WHITE, BLACK);
+
+            // FPS
+            // TODO create a chart_t struct and call DrawChart(chart, data);
+            // TODO improve padding of text labels (axis,
+            // TODO improve constant stuff: 16ms, 20ms scale
+            rbuf_push(frame_times, GetFrameTime()*1000.0f);
+            if (draw_fps) {
+                DrawFPS(10, 10);
+                const Color fps_color = Fade(LIME, 0.75f);
+                const Color fps_color_slow = Fade(RED, 0.75f);
+                const Color fps_label_color = Fade(WHITE, 0.75f);
+                const int fps_width = 152;
+                const int fps_height = 42;
+                const float fps_x_scale = 1.0f;
+                const float fps_y_scale = ((float)(fps_height - 2)/20.0f);
+                const v2 fps_pos = {100, 10};
+                const int fps_xpos = fps_pos.x + fps_width - 1;
+                const int fps_ypos = fps_pos.y + fps_height - 1;
+
+                // Target line
+                const int fps_target_height = fps_ypos - round(16.666666667f*fps_y_scale);
+                DrawLine(fps_pos.x + 1, fps_target_height, fps_pos.x + fps_width - 1, fps_target_height, MAGENTA);
+
+                // Draw data left to right
+                for (int i = 1, max = min(fps_width-2, rbuf_len(frame_times)); i <= max; i++) {
+                    const int x = fps_xpos - round((float)i*fps_x_scale);
+                    const int y = fps_ypos;
+                    const float frame_time = rbuf_get(frame_times, -i);
+                    const int height = clamp(round(frame_time*fps_y_scale), 0, fps_height - 2);
+                    const Color color = (frame_time > 16.67f ? fps_color_slow : fps_color);
+                    DrawLine(x, y, x, y - height, color);
+                }
+
+                // Border
+                DrawRectangleLines(fps_pos.x, fps_pos.y, fps_width, fps_height, LIME);
+
+                // Labels
+                DrawText("0 ms", fps_xpos + 4, fps_pos.y + fps_height - 5, 8, fps_label_color);
+                DrawText("20 ms", fps_xpos + 4, fps_pos.y - 5, 8, fps_label_color);
+            }
 
             // DrawBodyLabelText(earth, "Earth", (v2){20, screenHeight-80});
             // draw velocity vector(s)?
