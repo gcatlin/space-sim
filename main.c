@@ -4,6 +4,8 @@
 
 #include <raylib.h>  // v2.5.0
 
+#include "ringbuf.c"
+
 #define SOFTENING 1e-9f
 
 typedef Vector2 v2;
@@ -145,6 +147,9 @@ static void DrawBodyOrbit(v2 parent_pos, v2 child_pos, Color color)
 
 int main(void)
 {
+    // Tests
+    rbuf_test();
+
     // Initialization
     const char *title = "Space Sim";
     int screenWidth = 1280;
