@@ -157,7 +157,6 @@ int main(void)
 
     init_bodies();
 
-    // Main game loop
     bool paused = false;
 
     bool draw_bar = false;
@@ -168,6 +167,7 @@ int main(void)
     const float time_multiplier = 2e6;
     float zoom = 1.5e-10;
 
+    // Main game loop
     while (!WindowShouldClose()) {
         // Handle input
         if (IsKeyPressed(KEY_SPACE)) { paused = !paused; }
@@ -199,8 +199,8 @@ int main(void)
             DrawFPS(10, 10);
 
             // Scale and Translate
-            v2 center = { screenWidth/2, screenHeight/2 };
-            v2 sun_pos = v2_add(center, v2_scale(sun.position, zoom));
+            const v2 center = { screenWidth/2, screenHeight/2 };
+            const v2 sun_pos = v2_add(center, v2_scale(sun.position, zoom));
             v2 planet_pos[8];
             for (int i = 0; i < 8; i++) {
                 planet_pos[i] = v2_add(center, v2_scale(planets[i].position, zoom));
@@ -227,18 +227,18 @@ int main(void)
 
             // Solar system bar
             if (draw_bar) {
-                Color bar_color = { 10, 10, 10, 255 };
-                float bar_height = 40.0f;
+                const Color bar_color = { 10, 10, 10, 255 };
+                const float bar_height = 40.0f;
                 DrawRectangle(0, screenHeight - bar_height, screenWidth, bar_height, bar_color);
-                body_t jupiter = planets[4];
-                body_t neptune = planets[7];
-                float width_scale = neptune.distance / screenWidth * 1.01f;
-                float height_scale = (jupiter.radius * 2.0f / bar_height) * 1.2f;
-                float posY = screenHeight - (bar_height / 2.0f);
+                const body_t jupiter = planets[4];
+                const body_t neptune = planets[7];
+                const float width_scale = neptune.distance / screenWidth * 1.01f;
+                const float height_scale = (jupiter.radius * 2.0f / bar_height) * 1.2f;
+                const float posY = screenHeight - (bar_height / 2.0f);
                 DrawCircle(0, posY, max(sun.radius / height_scale, 10.0f), Fade(sun.color, 0.25f));
                 for (int i = 0; i < 8; i++) {
-                    int posX = planets[i].distance / width_scale;
-                    int radius = planets[i].radius / height_scale;
+                    const int posX = planets[i].distance / width_scale;
+                    const int radius = planets[i].radius / height_scale;
                     DrawCircle(posX, posY, max(radius, 2.0f), planets[i].color);
                 }
             }
