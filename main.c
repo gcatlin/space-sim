@@ -23,7 +23,7 @@ static char tmpstr[1024];
 
 // https://en.wikipedia.org/wiki/Astronomical_system_of_units
 // https://en.wikipedia.org/wiki/Standard_gravitational_parameter
-static const float G     = 6.67408e-11;   // Gravitational constant (m³ kg⁻¹ s⁻²)
+// static const float G     = 6.67408e-11;   // Gravitational constant (m³ kg⁻¹ s⁻²)
 static const float GMsun = 1.3271244e+20; // standard gravitational parameter (m³ s⁻²)
 
 static const Color background = { 5, 5, 5, 255 };
@@ -51,9 +51,9 @@ static body_t planets[8] = {
 #define clamp(x, min, max) (((x) < (min)) ? (min) : ((x) > (max)) ? (max) : (x))
 
 static inline v2 v2_add(v2 v, v2 u) { return (v2){ v.x + u.x, v.y + u.y }; }
-static inline v2 v2_div(v2 v, v2 u) { return (v2){ v.x / u.x, v.y / u.y }; }
-static inline v2 v2_mul(v2 v, v2 u) { return (v2){ v.x * u.x, v.y * u.y }; }
-static inline v2 v2_sub(v2 v, v2 u) { return (v2){ v.x - u.x, v.y - u.y }; }
+// static inline v2 v2_div(v2 v, v2 u) { return (v2){ v.x / u.x, v.y / u.y }; }
+// static inline v2 v2_mul(v2 v, v2 u) { return (v2){ v.x * u.x, v.y * u.y }; }
+// static inline v2 v2_sub(v2 v, v2 u) { return (v2){ v.x - u.x, v.y - u.y }; }
 static inline v2 v2_scale(v2 v, float s) { return (v2){ v.x * s, v.y * s }; }
 static inline float v2_distance(v2 v, v2 u) { return sqrtf((v.x-u.x)*(v.x-u.x) + (v.y-u.y)*(v.y-u.y)); }
 static inline float v2_magnitude(v2 v) { return sqrtf(v.x*v.x + v.y*v.y); }
