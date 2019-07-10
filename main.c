@@ -176,6 +176,9 @@ int main(void)
         if (IsKeyPressed(KEY_P)) { draw_planets = !draw_planets; }
         if (IsKeyPressed(KEY_R)) { init_bodies(); }
 
+        if (IsKeyPressed(KEY_X)) { zoom *= 1.5f; }
+        if (IsKeyPressed(KEY_Z)) { zoom /= 1.5f; }
+
         int mouse_wheel_move = GetMouseWheelMove();
         if (mouse_wheel_move) {
             // zoom = clamp(zoom + mouse_wheel_move, 1e-12, 1);
