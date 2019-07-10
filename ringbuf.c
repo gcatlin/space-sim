@@ -16,9 +16,9 @@ typedef struct {
     size_t cap;
     size_t idx;
     char buf[];
-} rbuf_hdr;
+} rbuf_hdr_t;
 
-#define rbuf__hdr(b) ((rbuf_hdr *)((char *)(b) - offsetof(rbuf_hdr, buf)))
+#define rbuf__hdr(b) ((rbuf_hdr_t *)((char *)(b) - offsetof(rbuf_hdr_t, buf)))
 #define rbuf__len(b) (rbuf__hdr(b)->len)
 #define rbuf__cap(b) (rbuf__hdr(b)->cap)
 #define rbuf__idx(b) (rbuf__hdr(b)->idx)
@@ -45,9 +45,9 @@ typedef struct {
 
 void *rbuf__malloc(const void *buf, size_t cap, size_t elem_size)
 {
-    assert(cap <= (SIZE_MAX - offsetof(rbuf_hdr, buf))/elem_size);
-    size_t size = offsetof(rbuf_hdr, buf) + cap*elem_size;
-    rbuf_hdr *hdr = malloc(size);
+    assert(cap <= (SIZE_MAX - offsetof(rbuf_hdr_t, buf))/elem_size);
+    size_t size = offsetof(rbuf_hdr_t, buf) + cap*elem_size;
+    rbuf_hdr_t *hdr = malloc(size);
     hdr->len = 0;
     hdr->cap = cap;
     hdr->idx = 0;
