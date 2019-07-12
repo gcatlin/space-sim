@@ -42,6 +42,7 @@ typedef struct {
 #define rbuf_reset(b) ((b) ? rbuf__len(b) = 0, rbuf__idx(b) = 0 : 0)
 #define rbuf_free(b) ((b) ? (free(rbuf__hdr(b)), (b) = NULL) : 0)
 
+// TODO enforce power of 2 capacity so we can mask instead of modulo?
 void *rbuf__malloc(const void *buf, size_t cap, size_t elem_size)
 {
     assert(cap <= (SIZE_MAX - offsetof(rbuf_hdr_t, buf))/elem_size);
@@ -53,6 +54,7 @@ void *rbuf__malloc(const void *buf, size_t cap, size_t elem_size)
     return hdr->buf;
 }
 
+// TODO test this
 void *rbuf_export(const void *restrict buf, void *restrict dest, size_t count)
 {
     size_t len = rbuf_len(buf);
