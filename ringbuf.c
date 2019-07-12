@@ -34,7 +34,6 @@ typedef struct {
 #define rbuf_ptr(b, i) ((b) ? (b) + rbuf__off(b, i) : NULL)
 #define rbuf_get(b, i) ((i) >= 0 ? *((b) + rbuf__off(b, i)) : *((b) + rbuf__off(b, rbuf__len(b) + (i))))
 #define rbuf_push(b, ...) ((b) ? (b)[rbuf__off(b, rbuf__len(b))] = (__VA_ARGS__), rbuf__advance(b) : 0)
-// TODO add tests for rbuf_empty and rbuf_full
 #define rbuf_empty(b) (rbuf_len(b) == 0)
 #define rbuf_full(b) ((b) && (rbuf__len(b) == rbuf__cap(b)))
 
@@ -71,6 +70,8 @@ void rbuf_test(void)
     assert(rbuf_len(buf) == 0);
     assert(rbuf_cap(buf) == 0);
     assert(rbuf_idx(buf) == 0);
+    assert(rbuf_empty(buf));
+    assert(!rbuf_full(buf));
 
     // Initialize
     int n = 1024;
@@ -80,6 +81,8 @@ void rbuf_test(void)
     assert(rbuf_idx(buf) == 0);
     assert(rbuf_ptr(buf, 0) == buf);
     assert(rbuf_get(buf, 0) == buf[0]);
+    assert(rbuf_empty(buf));
+    assert(!rbuf_full(buf));
 
     // Fill to capacity
     for (int i = 0; i < n; i++) {
@@ -97,6 +100,8 @@ void rbuf_test(void)
     assert(rbuf_get(buf, 0) == buf[0]);
     assert(rbuf_get(buf, n - 1) == buf[n - 1]);
     assert(rbuf_get(buf, -1) == buf[n - 1]);
+    assert(!rbuf_empty(buf));
+    assert(rbuf_full(buf));
 
     // Fill beyond capacity
     rbuf_push(buf, n);
@@ -111,6 +116,8 @@ void rbuf_test(void)
     for (size_t i = 0; i < rbuf_len(buf); i++) {
         assert(rbuf_get(buf, i) == i + 1);
     }
+    assert(!rbuf_empty(buf));
+    assert(rbuf_full(buf));
 
     // Reset
     rbuf_reset(buf);
@@ -119,6 +126,13 @@ void rbuf_test(void)
     assert(rbuf_idx(buf) == 0);
     assert(rbuf_ptr(buf, 0) == buf);
     assert(rbuf_get(buf, 0) == buf[0]);
+    assert(rbuf_empty(buf));
+    assert(!rbuf_full(buf));
+
+    // Add an item
+    rbuf_push(buf, 0);
+    assert(!rbuf_empty(buf));
+    assert(!rbuf_full(buf));
 
     // Free
     rbuf_free(buf);
@@ -127,6 +141,8 @@ void rbuf_test(void)
     assert(rbuf_cap(buf) == 0);
     assert(rbuf_idx(buf) == 0);
     assert(rbuf_ptr(buf, 0) == NULL);
+    assert(rbuf_empty(buf));
+    assert(!rbuf_full(buf));
 }
 
 #define RINGBUF_C
