@@ -11,13 +11,16 @@
 typedef Vector2 v2;
 
 typedef struct {
+    int id;
     v2 position;
     v2 velocity;
     float mass;
     float _mass; // inverse mass
     float radius;
     float distance;
+    float GM; // gravitational parameter (m³ s⁻²)
     char name[8];
+    int parent_id;
     Color color;
 } body_t;
 
@@ -26,7 +29,7 @@ static char tmpstr[1024];
 // https://en.wikipedia.org/wiki/Astronomical_system_of_units
 // https://en.wikipedia.org/wiki/Standard_gravitational_parameter
 // static const float G     = 6.67408e-11;   // Gravitational constant (m³ kg⁻¹ s⁻²)
-static const float GMsun = 1.3271244e+20; // standard gravitational parameter (m³ s⁻²)
+// static const float GMsun = ; // standard gravitational parameter
 
 static const Color background = { 5, 5, 5, 255 };
 static const int   label_font_size     = 10;
@@ -34,17 +37,22 @@ static const Color label_font_color    = WHITE;
 static const Color label_shadow_color  = BLACK;
 
 // https://en.wikipedia.org/wiki/List_of_gravitationally_rounded_objects_of_the_Solar_System
-static body_t sun = { {0}, {0}, 1.98550e+30, 5.03651473e-31, 6.95700e+08, 0, "Sun", YELLOW };
+// https://en.wikipedia.org/wiki/Standard_gravitational_parameter
+static body_t sun = { 0, {0}, {0}, 1.98550e+30, 5.03651473e-31, 6.95700e+08, 1.3271244e+20, 1.3271244e+20, "Sun", 0, YELLOW };
 static body_t planets[8] = {
-    //pos  vel  mass (kg)   1/mass (kg⁻¹)   radius (m)   distance (m)   name       color
-    { {0}, {0}, 3.3020e+23, 3.02846760e-24, 2.439640e+6, 5.7909175e+10, "Mercury", GRAY     },
-    { {0}, {0}, 4.8690e+24, 2.05380982e-25, 6.051590e+6, 1.0820893e+11, "Venus",   GREEN    },
-    { {0}, {0}, 5.9720e+24, 1.67448091e-25, 6.378100e+6, 1.4959789e+11, "Earth",   BLUE     },
-    { {0}, {0}, 6.4191e+23, 1.55785079e-24, 3.397000e+6, 2.2793664e+11, "Mars",    RED      },
-    { {0}, {0}, 1.8987e+27, 5.26676147e-28, 7.149268e+7, 7.7841201e+11, "Jupiter", ORANGE   },
-    { {0}, {0}, 5.6851e+26, 1.75898401e-27, 6.026714e+7, 1.4267254e+12, "Saturn",  BEIGE    },
-    { {0}, {0}, 8.6849e+25, 1.15142374e-26, 2.555725e+7, 2.8709722e+12, "Uranus",  SKYBLUE  },
-    { {0}, {0}, 1.0244e+26, 9.76181179e-27, 2.476636e+7, 4.4982529e+12, "Neptune", DARKBLUE },
+    //id pos vel  mass (kg)   1/mass (kg⁻¹)   radius (m)   distance (m)   GM (m³ s⁻²)  name       parent color
+    {0, {0}, {0}, 3.3020e+23, 3.02846760e-24, 2.439640e+6, 5.7909175e+10, 0,               "Mercury", 0,     GRAY     },
+    {1, {0}, {0}, 4.8690e+24, 2.05380982e-25, 6.051590e+6, 1.0820893e+11, 0,               "Venus",   0,     GREEN    },
+    {2, {0}, {0}, 5.9720e+24, 1.67448091e-25, 6.378100e+6, 1.4959789e+11, 3.986004418e+14, "Earth",   0,     BLUE     },
+    {3, {0}, {0}, 6.4191e+23, 1.55785079e-24, 3.397000e+6, 2.2793664e+11, 0,               "Mars",    0,     RED      },
+    {4, {0}, {0}, 1.8987e+27, 5.26676147e-28, 7.149268e+7, 7.7841201e+11, 0,               "Jupiter", 0,     ORANGE   },
+    {5, {0}, {0}, 5.6851e+26, 1.75898401e-27, 6.026714e+7, 1.4267254e+12, 0,               "Saturn",  0,     BEIGE    },
+    {6, {0}, {0}, 8.6849e+25, 1.15142374e-26, 2.555725e+7, 2.8709722e+12, 0,               "Uranus",  0,     SKYBLUE  },
+    {7, {0}, {0}, 1.0244e+26, 9.76181179e-27, 2.476636e+7, 4.4982529e+12, 0,               "Neptune", 0,     DARKBLUE },
+};
+
+static body_t moons[1] = {
+    { 0, {0}, {0}, 7.3472e+22, 1.36097508e-23, 1, 3.84402e+8, 4.9048695e+12, "Moon", 2, GRAY },
 };
 
 
@@ -76,31 +84,57 @@ static void init_bodies(void)
     planets[5].velocity.y = -9.6900e+3;
     planets[6].velocity.y = -6.8100e+3;
     planets[7].velocity.y = -5.4300e+3;
+
+    moons[0].position.x = moons[0].distance;
+    moons[0].position.y = moons[0].distance;
+    moons[0].velocity.x = 0;
+    moons[0].velocity.y = -1.022e+3;
+
 }
 
-static void simulate_planet(body_t *planet, float dt)
+static v2 calculate_force(const body_t *restrict parent, const body_t *restrict child)
 {
     // Calculate force
-    float dx = sun.position.x - planet->position.x;
-    float dy = sun.position.y - planet->position.y;
-    float dist = v2_distance(sun.position, planet->position);
+    float dx = parent->position.x - child->position.x;
+    float dy = parent->position.y - child->position.y;
+    float dist = v2_distance(parent->position, child->position);
     float invDist = 1.0f / (dist + SOFTENING);
     float invDist3 = invDist * invDist * invDist;
-    float F = GMsun * invDist3;
-    float Fx = F * dx;
-    float Fy = F * dy;
+    float F = parent->GM * invDist3;
+    return (v2){ F*dx, F*dy};
+}
 
-    // Apply force
-    planet->velocity.x += dt * Fx;
-    planet->velocity.y += dt * Fy;
+static void simulate_planet(const body_t *restrict star, body_t *restrict planet, float dt)
+{
+
+    v2 F = calculate_force(star, planet);
+    planet->velocity.x += dt * F.x;
+    planet->velocity.y += dt * F.y;
     planet->position.x += dt * planet->velocity.x;
     planet->position.y += dt * planet->velocity.y;
+}
+
+static void simulate_moon(const body_t *restrict star, body_t *restrict moon, float dt)
+{
+    // TODO account for sibling moons
+    // v2 Fstar = calculate_force(star, moon);
+    v2 Fstar = {0, 0};
+    v2 Fplanet = calculate_force(&planets[moon->parent_id], moon);
+    moon->velocity.x += dt * (Fstar.x + Fplanet.x);
+    moon->velocity.y += dt * (Fstar.y + Fplanet.y);
+    moon->position.x += dt * moon->velocity.x;
+    moon->position.y += dt * moon->velocity.y;
+    // treat the moon like a planet (influence of sun)
+    // then get impact of the parent planet
 }
 
 static void simulate(float dt)
 {
     for (int i = 0; i < 8; i++) {
-        simulate_planet(&planets[i], dt);
+        simulate_planet(&sun, &planets[i], dt);
+    }
+    for (int i = 0; i < 1; i++) {
+        simulate_moon(&sun, &moons[i], dt);
     }
 }
 
@@ -165,15 +199,18 @@ int main(void)
 
     bool paused = false;
     bool draw_fps = true;
-    bool draw_bar = false;
-    bool draw_labels = false;
-    bool draw_planets = false;
+    bool draw_bar = true;
+    bool draw_labels = true;
+    bool draw_planets = true;
+    bool draw_moons = true;
 
     const float simulation_time_step = 1.0f/240.0f; // 4.16 ms
     const float time_multiplier = 2e6;
     float zoom = 1.5e-10;
 
-    float *frame_times; rbuf_init(frame_times, 256);
+    // TODO fill with chart-width zeroes
+    float *frame_times = {0}; rbuf_init(frame_times, 256); 
+    float *mouse_wheel_moves = {0}; rbuf_init(mouse_wheel_moves, 256);
 
     // Main game loop
     while (!WindowShouldClose()) {
@@ -182,6 +219,7 @@ int main(void)
         if (IsKeyPressed(KEY_B)) { draw_bar = !draw_bar; }
         if (IsKeyPressed(KEY_F)) { draw_fps = !draw_fps; }
         if (IsKeyPressed(KEY_L)) { draw_labels = !draw_labels; }
+        if (IsKeyPressed(KEY_M)) { draw_moons = !draw_moons; }
         if (IsKeyPressed(KEY_P)) { draw_planets = !draw_planets; }
         if (IsKeyPressed(KEY_R)) { init_bodies(); }
 
@@ -216,6 +254,10 @@ int main(void)
             for (int i = 0; i < 8; i++) {
                 planet_pos[i] = v2_add(center, v2_scale(planets[i].position, zoom));
             }
+            v2 moon_pos[1];
+            for (int i = 0; i < 1; i++) {
+                moon_pos[i] = v2_add(center, v2_scale(moons[i].position, zoom));
+            }
 
             // Sun
             DrawCircleV(sun_pos, sun.radius * zoom, sun.color);
@@ -232,6 +274,19 @@ int main(void)
                     for (int i = 0; i < 8; i++) {
                         DrawBodyLabel(&planets[i], planet_pos[i], 15.0f, DARKGREEN);
                         DrawBodyOrbit(sun_pos, planet_pos[i], planets[i].color);
+                    }
+                }
+            }
+
+            // Moons
+            if (draw_moons) {
+                for (int i = 0; i < 1; i++) {
+                    DrawCircleV(moon_pos[i], planets[i].radius * zoom, planets[i].color);
+                }
+                if (draw_labels) {
+                    for (int i = 0; i < 1; i++) {
+                        DrawBodyLabel(&moons[i], moon_pos[i], 15.0f, DARKBLUE);
+                        DrawBodyOrbit(planet_pos[moons[i].parent_id], moon_pos[i], moons[i].color);
                     }
                 }
             }
