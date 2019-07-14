@@ -1,8 +1,13 @@
 # TODO
 
 ## High priority
+- keys to pan up/down/left/right
 - support zoom in / out on sun using mouse wheel
     - fn for drawing an array of ints/floats as a chart
+- create a chart_t struct and call DrawChart(chart, data);
+    - pos, width, height, border, padding, labels?, max_x, max_y, color_callback?
+    - different types via fn names; e.g. DrawBarChart, DrawLineChart
+    - rbuf helper fn to facilitate memcpy'ing the data out?
 
 ## Low hanging fruit
 
