@@ -10,51 +10,69 @@
 
 typedef Vector2 v2;
 
+typedef enum {
+    Star   = 0,
+    Planet = 1,
+    Moon   = 2,
+} body_type_t;
+
 typedef struct {
-    int id;
-    v2 position;
-    v2 velocity;
-    float mass;
-    float _mass; // inverse mass
-    float radius;
-    float distance;
-    float GM; // gravitational parameter (m³ s⁻²)
-    char name[8];
-    int parent_id;
-    Color color;
+    int         id;
+    int         primary_id;
+    body_type_t type;
+    v2          position; // (m)
+    v2          velocity; // (m s⁻²)
+    float       mass;     // (kg)
+    float       _mass;    // inverse mass (kg⁻¹)
+    float       radius;   // (m)
+    float       distance; // distance from primary (m)
+    float       speed;    // orbital speed (m s⁻²)
+    float       GM;       // standard gravitational parameter (m³ s⁻²)
+    char        name[8];
+    Color       color;
 } body_t;
 
 static char tmpstr[1024];
+static const Color background         = { 5, 5, 5, 255 };
+static const int   label_font_size    = 10;
+static const Color label_font_color   = WHITE;
+static const Color label_shadow_color = BLACK;
 
-// https://en.wikipedia.org/wiki/Astronomical_system_of_units
 // https://en.wikipedia.org/wiki/Standard_gravitational_parameter
-// static const float G     = 6.67408e-11;   // Gravitational constant (m³ kg⁻¹ s⁻²)
-// static const float GMsun = ; // standard gravitational parameter
-
-static const Color background = { 5, 5, 5, 255 };
-static const int   label_font_size     = 10;
-static const Color label_font_color    = WHITE;
-static const Color label_shadow_color  = BLACK;
-
 // https://en.wikipedia.org/wiki/List_of_gravitationally_rounded_objects_of_the_Solar_System
-// https://en.wikipedia.org/wiki/Standard_gravitational_parameter
-static body_t sun = { 0, {0}, {0}, 1.98550e+30, 5.03651473e-31, 6.95700e+08, 1.3271244e+20, 1.3271244e+20, "Sun", 0, YELLOW };
-static body_t planets[8] = {
-    //id pos vel  mass (kg)   1/mass (kg⁻¹)   radius (m)   distance (m)   GM (m³ s⁻²)  name       parent color
-    {0, {0}, {0}, 3.3020e+23, 3.02846760e-24, 2.439640e+6, 5.7909175e+10, 0,               "Mercury", 0,     GRAY     },
-    {1, {0}, {0}, 4.8690e+24, 2.05380982e-25, 6.051590e+6, 1.0820893e+11, 0,               "Venus",   0,     GREEN    },
-    {2, {0}, {0}, 5.9720e+24, 1.67448091e-25, 6.378100e+6, 1.4959789e+11, 3.986004418e+14, "Earth",   0,     BLUE     },
-    {3, {0}, {0}, 6.4191e+23, 1.55785079e-24, 3.397000e+6, 2.2793664e+11, 0,               "Mars",    0,     RED      },
-    {4, {0}, {0}, 1.8987e+27, 5.26676147e-28, 7.149268e+7, 7.7841201e+11, 0,               "Jupiter", 0,     ORANGE   },
-    {5, {0}, {0}, 5.6851e+26, 1.75898401e-27, 6.026714e+7, 1.4267254e+12, 0,               "Saturn",  0,     BEIGE    },
-    {6, {0}, {0}, 8.6849e+25, 1.15142374e-26, 2.555725e+7, 2.8709722e+12, 0,               "Uranus",  0,     SKYBLUE  },
-    {7, {0}, {0}, 1.0244e+26, 9.76181179e-27, 2.476636e+7, 4.4982529e+12, 0,               "Neptune", 0,     DARKBLUE },
-};
+// https://en.wikipedia.org/wiki/Moon
+// https://en.wikipedia.org/wiki/Moons_of_Jupiter
+static const int num_bodies = 10;
+static body_t bodies[num_bodies] = {
+    //id p type pos vel  mass (kg)   1/mass (kg⁻¹)   radius (m)   distance (m)   speed      GM (m³ s⁻²)   name       color
+    {0, -1, 0, {0}, {0}, 1.9855e+30, 5.03651473e-31, 6.955700e+8, 0,             0,         1.327124e+20, "Sun",     YELLOW   },
 
-static body_t moons[1] = {
-    { 0, {0}, {0}, 7.3472e+22, 1.36097508e-23, 1, 3.84402e+8, 4.9048695e+12, "Moon", 2, GRAY },
-};
+    {1,  0, 1, {0}, {0}, 3.3020e+23, 3.02846760e-24, 2.439640e+6, 5.7909175e+10, 4.7870e+4, 2.203200e+13, "Mercury", GRAY     },
+    {2,  0, 1, {0}, {0}, 4.8690e+24, 2.05380982e-25, 6.051590e+6, 1.0820893e+11, 3.5020e+4, 3.248590e+14, "Venus",   GREEN    },
+    {3,  0, 1, {0}, {0}, 5.9720e+24, 1.67448091e-25, 6.378100e+6, 1.4959789e+11, 2.9786e+4, 3.986004e+14, "Earth",   BLUE     },
+    {4,  0, 1, {0}, {0}, 6.4191e+23, 1.55785079e-24, 3.397000e+6, 2.2793664e+11, 2.4077e+4, 4.282837e+13, "Mars",    RED      },
+    {5,  0, 1, {0}, {0}, 1.8987e+27, 5.26676147e-28, 7.149268e+7, 7.7841201e+11, 1.3070e+4, 1.266865e+17, "Jupiter", ORANGE   },
+    {6,  0, 1, {0}, {0}, 5.6851e+26, 1.75898401e-27, 6.026714e+7, 1.4267254e+12, 9.6900e+3, 3.793119e+16, "Saturn",  BEIGE    },
+    {7,  0, 1, {0}, {0}, 8.6849e+25, 1.15142374e-26, 2.555725e+7, 2.8709722e+12, 6.8100e+3, 5.793939e+15, "Uranus",  SKYBLUE  },
+    {8,  0, 1, {0}, {0}, 1.0244e+26, 9.76181179e-27, 2.476636e+7, 4.4982529e+12, 5.4300e+3, 6.836529e+15, "Neptune", DARKBLUE },
 
+    {9,  3, 2, {0}, {0}, 7.3472e+22, 1.36097508e-23, 1.737100e+3, 3.8443990e+08, 1.0220e+3, 4.904866e+12, "Moon",    GRAY     },
+    // Deimos
+    // Phobos
+    // Io
+    // Europa
+    // Ganymede
+    // Callisto
+};
+static const body_t *sun     = &bodies[0];
+static const body_t *planets = &bodies[1];
+static const int num_planets = 8;
+
+static const float box_sizes[3] = {
+    [Star]   = 60.0f,
+    [Planet] = 30.0f,
+    [Moon]   = 15.0f,
+};
 
 #define min(x, y) (((x) < (y)) ? (x) : (y))
 #define max(x, y) (((x) > (y)) ? (x) : (y))
@@ -64,77 +82,56 @@ static body_t moons[1] = {
 static inline v2 v2_add(v2 v, v2 u) { return (v2){ v.x + u.x, v.y + u.y }; }
 // static inline v2 v2_div(v2 v, v2 u) { return (v2){ v.x / u.x, v.y / u.y }; }
 // static inline v2 v2_mul(v2 v, v2 u) { return (v2){ v.x * u.x, v.y * u.y }; }
-// static inline v2 v2_sub(v2 v, v2 u) { return (v2){ v.x - u.x, v.y - u.y }; }
+static inline v2 v2_sub(v2 v, v2 u) { return (v2){ v.x - u.x, v.y - u.y }; }
 static inline v2 v2_scale(v2 v, float s) { return (v2){ v.x * s, v.y * s }; }
 static inline float v2_distance(v2 v, v2 u) { return sqrtf((v.x-u.x)*(v.x-u.x) + (v.y-u.y)*(v.y-u.y)); }
 static inline float v2_magnitude(v2 v) { return sqrtf(v.x*v.x + v.y*v.y); }
 
 static void init_bodies(void)
 {
-    for (int i = 0; i < 8; i++) {
-        planets[i].position.x = planets[i].distance;
-        planets[i].position.y = 0;
-        planets[i].velocity.x = 0;
+    for (int i = 0; i < num_bodies; i++) {
+        body_t *b = &bodies[i];
+        float xpos = b->distance;
+        if (b->primary_id) {
+            xpos += bodies[b->primary_id].distance;
+        }
+        b->position.x = xpos;
+        b->position.y = 0;
+        b->velocity.x = 0;
+        b->velocity.y = -b->speed;
     }
-    planets[0].velocity.y = -4.7870e+4;
-    planets[1].velocity.y = -3.5020e+4;
-    planets[2].velocity.y = -2.9786e+4;
-    planets[3].velocity.y = -2.4077e+4;
-    planets[4].velocity.y = -1.3070e+4;
-    planets[5].velocity.y = -9.6900e+3;
-    planets[6].velocity.y = -6.8100e+3;
-    planets[7].velocity.y = -5.4300e+3;
-
-    moons[0].position.x = moons[0].distance;
-    moons[0].position.y = moons[0].distance;
-    moons[0].velocity.x = 0;
-    moons[0].velocity.y = -1.022e+3;
-
 }
 
-static v2 calculate_force(const body_t *restrict parent, const body_t *restrict child)
+static v2 calculate_force(const body_t *restrict primary, const body_t *restrict body)
 {
-    // Calculate force
-    float dx = parent->position.x - child->position.x;
-    float dy = parent->position.y - child->position.y;
-    float dist = v2_distance(parent->position, child->position);
+    float dist = v2_distance(primary->position, body->position);
     float invDist = 1.0f / (dist + SOFTENING);
     float invDist3 = invDist * invDist * invDist;
-    float F = parent->GM * invDist3;
-    return (v2){ F*dx, F*dy};
+    float F = primary->GM * invDist3;
+    return v2_scale(v2_sub(primary->position, body->position), F);
 }
 
-static void simulate_planet(const body_t *restrict star, body_t *restrict planet, float dt)
+static void simulate_body(body_t *body, float dt)
 {
-
-    v2 F = calculate_force(star, planet);
-    planet->velocity.x += dt * F.x;
-    planet->velocity.y += dt * F.y;
-    planet->position.x += dt * planet->velocity.x;
-    planet->position.y += dt * planet->velocity.y;
-}
-
-static void simulate_moon(const body_t *restrict star, body_t *restrict moon, float dt)
-{
-    // TODO account for sibling moons
-    // v2 Fstar = calculate_force(star, moon);
-    v2 Fstar = {0, 0};
-    v2 Fplanet = calculate_force(&planets[moon->parent_id], moon);
-    moon->velocity.x += dt * (Fstar.x + Fplanet.x);
-    moon->velocity.y += dt * (Fstar.y + Fplanet.y);
-    moon->position.x += dt * moon->velocity.x;
-    moon->position.y += dt * moon->velocity.y;
-    // treat the moon like a planet (influence of sun)
-    // then get impact of the parent planet
+    // TODO account for sibling bodies?
+    v2 F = {0, 0};
+    int primary_id = body->primary_id;
+    while (primary_id != -1) {
+        const body_t *primary = &bodies[primary_id];
+        F = v2_add(F, calculate_force(primary, body));
+        primary_id = -1;
+        // primary_id = primary->primary_id;
+    }
+    body->velocity.x += dt * F.x;
+    body->velocity.y += dt * F.y;
+    body->position.x += dt * body->velocity.x;
+    body->position.y += dt * body->velocity.y;
 }
 
 static void simulate(float dt)
 {
-    for (int i = 0; i < 8; i++) {
-        simulate_planet(&sun, &planets[i], dt);
-    }
-    for (int i = 0; i < 1; i++) {
-        simulate_moon(&sun, &moons[i], dt);
+    for (int i = 0; i < num_bodies; i++) {
+        simulate_body(&bodies[i], dt);
     }
 }
 
@@ -152,7 +149,7 @@ static void DrawTextWithShadow(const char *text, int posX, int posY, int font_si
 
 static void DrawBodyLabelText(body_t *body, char *name, v2 pos)
 {
-    const float dist = v2_distance(sun.position, body->position) / 1000;
+    const float dist = v2_distance(sun->position, body->position) / 1000;
     const float speed = v2_magnitude(body->velocity) / 1000;
     sprintf(tmpstr, "%s \n distance: %.1f km \n speed: %.1f km/s", name, dist, speed);
 
@@ -197,34 +194,39 @@ int main(void)
 
     init_bodies();
 
-    bool paused = false;
+    // Flags
+    bool paused = true;
     bool draw_fps = true;
     bool draw_bar = true;
     bool draw_labels = true;
-    bool draw_planets = true;
-    bool draw_moons = true;
+    bool draw_bodies = true;
 
     const float simulation_time_step = 1.0f/240.0f; // 4.16 ms
     const float time_multiplier = 2e6;
-    float zoom = 1.5e-10;
+    float zoom = 1.5e-9;
+    v2 pan = {0, 0};
+    // int selected_body = 0;
 
     // TODO fill with chart-width zeroes
-    float *frame_times = {0}; rbuf_init(frame_times, 256); 
+    float *frame_times = {0}; rbuf_init(frame_times, 256);
     float *mouse_wheel_moves = {0}; rbuf_init(mouse_wheel_moves, 256);
 
     // Main game loop
     while (!WindowShouldClose()) {
         // Handle input
-        if (IsKeyPressed(KEY_SPACE)) { paused = !paused; }
-        if (IsKeyPressed(KEY_B)) { draw_bar = !draw_bar; }
-        if (IsKeyPressed(KEY_F)) { draw_fps = !draw_fps; }
-        if (IsKeyPressed(KEY_L)) { draw_labels = !draw_labels; }
-        if (IsKeyPressed(KEY_M)) { draw_moons = !draw_moons; }
-        if (IsKeyPressed(KEY_P)) { draw_planets = !draw_planets; }
-        if (IsKeyPressed(KEY_R)) { init_bodies(); }
-
-        if (IsKeyPressed(KEY_X)) { zoom *= 1.5f; }
-        if (IsKeyPressed(KEY_Z)) { zoom /= 1.5f; }
+        if (IsKeyPressed(KEY_SPACE))      { paused       = !paused; }
+        if (IsKeyDown(KEY_B))             { draw_bar     = !draw_bar; }
+        if (IsKeyDown(KEY_F))             { draw_fps     = !draw_fps; }
+        if (IsKeyDown(KEY_L))             { draw_labels  = !draw_labels; }
+        if (IsKeyDown(KEY_R))             { init_bodies(); }
+        if (IsKeyDown(KEY_X))             { zoom *= 1.25f; }
+        if (IsKeyDown(KEY_Z))             { zoom *= 0.80f; }
+        if (IsKeyDown(KEY_UP))            { pan.y += 20.0f; }
+        if (IsKeyDown(KEY_DOWN))          { pan.y -= 20.0f; }
+        if (IsKeyDown(KEY_LEFT))          { pan.x += 20.0f; }
+        if (IsKeyDown(KEY_RIGHT))         { pan.x -= 20.0f; }
+        // if (IsKeyDown(KEY_LEFT_BRACKET))  { selected_body = (num_bodies + 1) % num_bodies; }
+        // if (IsKeyDown(KEY_RIGHT_BRACKET)) { selected_body = (num_bodies - 1) % num_bodies; }
 
         int mouse_wheel_move = GetMouseWheelMove();
         if (mouse_wheel_move) {
@@ -232,7 +234,10 @@ int main(void)
         }
 
         // Update
-        if (!paused) {
+        const v2 center = { screenWidth/2, screenHeight/2 };
+        if (paused) {
+            DrawTextWithShadow("Paused", center.x-100, center.y-100, 60, WHITE, BLACK);
+        } else {
             simulate(simulation_time_step * time_multiplier);
             simulate(simulation_time_step * time_multiplier);
             simulate(simulation_time_step * time_multiplier);
@@ -247,46 +252,23 @@ int main(void)
 
             ClearBackground(background);
 
-            // Scale and Translate
-            const v2 center = { screenWidth/2, screenHeight/2 };
-            const v2 sun_pos = v2_add(center, v2_scale(sun.position, zoom));
-            v2 planet_pos[8];
-            for (int i = 0; i < 8; i++) {
-                planet_pos[i] = v2_add(center, v2_scale(planets[i].position, zoom));
-            }
-            v2 moon_pos[1];
-            for (int i = 0; i < 1; i++) {
-                moon_pos[i] = v2_add(center, v2_scale(moons[i].position, zoom));
-            }
-
-            // Sun
-            DrawCircleV(sun_pos, sun.radius * zoom, sun.color);
-            if (draw_labels) {
-                DrawBodyLabel(&sun, sun_pos, 60.0f, DARKGREEN);
-            }
-
-            // Planets
-            if (draw_planets) {
-                for (int i = 0; i < 8; i++) {
-                    DrawCircleV(planet_pos[i], planets[i].radius * zoom, planets[i].color);
+            // Bodies
+            if (draw_bodies) {
+                v2 positions[num_bodies];
+                // Get positions of bodies first because they'll be used for moon orbits later
+                for (int i = 0; i < num_bodies; i++) {
+                    const v2 scaled = v2_scale(bodies[i].position, zoom);
+                    positions[i] = v2_add(v2_add(center, pan), scaled);
                 }
-                if (draw_labels) {
-                    for (int i = 0; i < 8; i++) {
-                        DrawBodyLabel(&planets[i], planet_pos[i], 15.0f, DARKGREEN);
-                        DrawBodyOrbit(sun_pos, planet_pos[i], planets[i].color);
-                    }
-                }
-            }
-
-            // Moons
-            if (draw_moons) {
-                for (int i = 0; i < 1; i++) {
-                    DrawCircleV(moon_pos[i], planets[i].radius * zoom, planets[i].color);
-                }
-                if (draw_labels) {
-                    for (int i = 0; i < 1; i++) {
-                        DrawBodyLabel(&moons[i], moon_pos[i], 15.0f, DARKBLUE);
-                        DrawBodyOrbit(planet_pos[moons[i].parent_id], moon_pos[i], moons[i].color);
+                for (int i = 0; i < num_bodies; i++) {
+                    body_t b = bodies[i];
+                    const v2 pos = positions[i];
+                    DrawCircleV(pos, b.radius * zoom, b.color);
+                    if (draw_labels) {
+                        DrawBodyLabel(&b, pos, box_sizes[b.type], DARKGREEN);
+                        if (b.primary_id != -1) {
+                            DrawBodyOrbit(positions[b.primary_id], pos, b.color);
+                        }
                     }
                 }
             }
@@ -301,8 +283,8 @@ int main(void)
                 const float width_scale = neptune.distance / screenWidth * 1.01f;
                 const float height_scale = (jupiter.radius * 2.0f / bar_height) * 1.2f;
                 const float posY = screenHeight - (bar_height / 2.0f);
-                DrawCircle(0, posY, max(sun.radius / height_scale, 10.0f), Fade(sun.color, 0.25f));
-                for (int i = 0; i < 8; i++) {
+                DrawCircle(0, posY, max(sun->radius / height_scale, 10.0f), Fade(sun->color, 0.25f));
+                for (int i = 0; i < num_planets; i++) {
                     const int posX = planets[i].distance / width_scale;
                     const int radius = planets[i].radius / height_scale;
                     DrawCircle(posX, posY, max(radius, 2.0f), planets[i].color);
