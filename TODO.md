@@ -1,7 +1,8 @@
 # TODO
 
 ## High priority
-- keys to pan up/down/left/right
+- get sun / earth / moon simulation working
+- DrawTextEx("foo", (text_spec_t) { .align = Center, .size = 60 })
 - support zoom in / out on sun using mouse wheel
     - fn for drawing an array of ints/floats as a chart
 - create a chart_t struct and call DrawChart(chart, data);

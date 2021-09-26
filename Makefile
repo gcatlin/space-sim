@@ -1,7 +1,7 @@
 .PHONY = build clean list-deps run zig-build zig-list-deps zig-run FORCE
 
 build: bin Makefile main.c
-	cc main.c `pkg-config --libs --cflags raylib` -o bin/space-sim
+	cc -std=c11 main.c `pkg-config --libs --cflags raylib` -o bin/space-sim
 
 # build-static:
 # 	cc libraylib-2.5.0.a main.c \

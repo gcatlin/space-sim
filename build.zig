@@ -5,7 +5,7 @@ pub fn build(b: *Builder) void {
 
     const exe = b.addExecutable("space-sim", null);
     exe.setBuildMode(mode);
-    exe.addCSourceFile("main.c", [_][]const u8{"-std=c99"});
+    exe.addCSourceFile("main.c", &[_][]const u8{"-std=c99"});
     exe.linkSystemLibrary("c");
     exe.linkSystemLibrary("raylib");
 
